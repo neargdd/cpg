@@ -27,16 +27,22 @@
 package de.fraunhofer.aisec.cpg.graph;
 
 import de.fraunhofer.aisec.cpg.graph.type.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.annotation.Transient;
 
 /** Represents a C++ union/struct/class or Java class */
-public class RecordDeclaration extends Declaration {
+public class RecordDeclaration extends Declaration implements HasDefinition<RecordDeclaration> {
 
   /** The kind, i.e. struct, class, union or enum. */
   private String kind;
@@ -66,6 +72,18 @@ public class RecordDeclaration extends Declaration {
 
   @org.neo4j.ogm.annotation.Relationship
   private Set<ValueDeclaration> staticImports = new HashSet<>();
+
+  private DeclarationChain<RecordDeclaration> chain = new DeclarationChain<>();
+
+  /** If this is only a declaration, this provides a link to the definition of the function. */
+  @Relationship(value = "DEFINES")
+  private RecordDeclaration definition;
+
+  /**
+   * Specifies, whether this function declaration is also a definition, i.e. has a function body
+   * definition.
+   */
+  private boolean isDefinition;
 
   @Override
   public void setName(@NonNull String name) {
@@ -241,5 +259,33 @@ public class RecordDeclaration extends Declaration {
   @Override
   public int hashCode() {
     return super.hashCode();
+  }
+
+  @Override
+  public DeclarationChain<RecordDeclaration> chain() {
+    return chain;
+  }
+
+  @Nullable
+  public RecordDeclaration getDefinition() {
+    return definition;
+  }
+
+  @Override
+  public void setDefinition(HasDefinition<RecordDeclaration> definition) {
+    this.definition = (RecordDeclaration) definition;
+  }
+
+  public boolean isDefinition() {
+    return isDefinition;
+  }
+
+  @Override
+  RecordDeclaration getNextRedeclaration() {
+    return (RecordDeclaration) this.getPrevious();
+  }
+
+  public void setIsDefinition(boolean isDefinition) {
+    this.isDefinition = isDefinition;
   }
 }

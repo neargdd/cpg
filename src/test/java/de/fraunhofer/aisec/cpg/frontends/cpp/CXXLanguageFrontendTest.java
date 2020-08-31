@@ -26,6 +26,8 @@
 
 package de.fraunhofer.aisec.cpg.frontends.cpp;
 
+import static de.fraunhofer.aisec.cpg.TestUtils.findByUniqueName;
+import static de.fraunhofer.aisec.cpg.TestUtils.subnodesOfType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -1239,5 +1241,17 @@ class CXXLanguageFrontendTest extends BaseTest {
     assertEquals(
         "SomeCategory, SomeOtherThing",
         ((Literal<String>) annotation.getValues().get(0)).getValue());
+  }
+
+  @Test
+  void testForwardDeclarations() throws Exception {
+    Path topLevel = Path.of("src", "test", "resources");
+    TranslationUnitDeclaration tu =
+        TestUtils.analyzeAndGetFirstTU(
+            List.of(topLevel.resolve("forward_decl.cpp").toFile()), topLevel, true);
+
+    List<VariableDeclaration> variables = subnodesOfType(tu, VariableDeclaration.class);
+    VariableDeclaration localTwoParam = findByUniqueName(variables, "local_two_param");
+    assertNotNull(localTwoParam);
   }
 }

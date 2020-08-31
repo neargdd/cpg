@@ -46,4 +46,8 @@ public class Declaration extends Node {
   public String toString() {
     return new ToStringBuilder(this, Node.TO_STRING_STYLE).toString();
   }
+
+  Declaration getNextRedeclaration() {
+    return this;
+  }
 }
