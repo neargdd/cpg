@@ -1,6 +1,5 @@
 package de.fraunhofer.aisec.cpg.graph;
 
-import java.util.Iterator;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 public interface HasDefinition<N extends Declaration> extends Redeclarable<N> {
@@ -40,10 +39,10 @@ public interface HasDefinition<N extends Declaration> extends Redeclarable<N> {
       definition = this;
     }
 
-    for (Iterator<N> it = declarationIterator(get()); it.hasNext(); ) {
-      HasDefinition<N> node = (HasDefinition<N>) it.next();
+    for (var it = declarationIterator(get()); it.hasNext(); ) {
+      var node = (HasDefinition<?>) it.next();
       if (node.isDefinition()) {
-        definition = node;
+        definition = (HasDefinition<N>) node;
       }
     }
 
@@ -51,8 +50,8 @@ public interface HasDefinition<N extends Declaration> extends Redeclarable<N> {
     // but not sure we can do it any other way
     this.setDefinition(definition);
 
-    for (Iterator<N> it = declarationIterator(get()); it.hasNext(); ) {
-      HasDefinition<N> node = (HasDefinition<N>) it.next();
+    for (var it = declarationIterator(get()); it.hasNext(); ) {
+      var node = (HasDefinition<N>) it.next();
       node.setDefinition(definition);
     }
   }

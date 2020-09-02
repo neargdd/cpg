@@ -26,6 +26,7 @@
 
 package de.fraunhofer.aisec.cpg.frontends.cpp;
 
+import static de.fraunhofer.aisec.cpg.graph.NodeBuilder.newRecordDeclaration;
 import static de.fraunhofer.aisec.cpg.helpers.Util.errorWithFileLocation;
 import static de.fraunhofer.aisec.cpg.helpers.Util.warnWithFileLocation;
 
@@ -295,12 +296,20 @@ public class DeclarationHandler extends Handler<Declaration, IASTDeclaration, CX
 
       sequence.add(declaration);
     } else if (declSpecifier instanceof CPPASTElaboratedTypeSpecifier) {
-      warnWithFileLocation(
-          lang,
-          ctx,
-          log,
-          "Parsing elaborated type specifiers is not supported (yet)",
-          declSpecifier.getClass());
+      var name = ((CPPASTElaboratedTypeSpecifier) declSpecifier).getName().toString();
+
+      // check, if the declaration for this particular type already exists
+      var existingDeclaration =
+          this.lang
+              .getScopeManager()
+              .getRecordForName(this.lang.getScopeManager().getCurrentScope(), name);
+
+      if (existingDeclaration == null) {
+        RecordDeclaration declaration =
+            newRecordDeclaration(name, "class", declSpecifier.getRawSignature());
+
+        lang.getScopeManager().addDeclaration(declaration);
+      }
     }
 
     for (IASTDeclarator declarator : ctx.getDeclarators()) {

@@ -28,12 +28,9 @@ interface Redeclarable<N extends Declaration> {
             return false;
           }
           passedFirst = true;
-
-          N next = (N) current.getNextRedeclaration();
-          return next != current;
         }
-
-        return false;
+        N next = (N) current.getNextRedeclaration();
+        return next != current;
       }
 
       @Override

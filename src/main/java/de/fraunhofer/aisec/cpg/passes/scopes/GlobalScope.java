@@ -26,6 +26,9 @@
 
 package de.fraunhofer.aisec.cpg.passes.scopes;
 
+import de.fraunhofer.aisec.cpg.graph.Declaration;
+import org.checkerframework.checker.nullness.qual.NonNull;
+
 public class GlobalScope extends StructureDeclarationScope {
 
   public GlobalScope() {
@@ -46,4 +49,9 @@ public class GlobalScope extends StructureDeclarationScope {
   public void addVariable(VariableDeclaration variable) {
     this.variables.add(variable);
   }*/
+
+  public void addDeclaration(@NonNull Declaration declaration) {
+    // add it to the current translation unit
+
+  }
 }
