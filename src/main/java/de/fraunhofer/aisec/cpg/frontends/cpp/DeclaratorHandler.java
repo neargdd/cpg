@@ -32,16 +32,7 @@ import static de.fraunhofer.aisec.cpg.helpers.Util.warnWithFileLocation;
 import static java.util.Collections.emptyList;
 
 import de.fraunhofer.aisec.cpg.frontends.Handler;
-import de.fraunhofer.aisec.cpg.graph.Declaration;
-import de.fraunhofer.aisec.cpg.graph.Expression;
-import de.fraunhofer.aisec.cpg.graph.FieldDeclaration;
-import de.fraunhofer.aisec.cpg.graph.FunctionDeclaration;
-import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
-import de.fraunhofer.aisec.cpg.graph.NodeBuilder;
-import de.fraunhofer.aisec.cpg.graph.ParamVariableDeclaration;
-import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
-import de.fraunhofer.aisec.cpg.graph.ValueDeclaration;
-import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
+import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.cpg.graph.type.IncompleteType;
 import de.fraunhofer.aisec.cpg.graph.type.TypeParser;
 import de.fraunhofer.aisec.cpg.graph.type.UnknownType;
@@ -51,21 +42,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.eclipse.cdt.core.dom.ast.IASTCompositeTypeSpecifier;
-import org.eclipse.cdt.core.dom.ast.IASTDeclaration;
-import org.eclipse.cdt.core.dom.ast.IASTInitializer;
-import org.eclipse.cdt.core.dom.ast.IASTNameOwner;
-import org.eclipse.cdt.core.dom.ast.IASTNode;
-import org.eclipse.cdt.core.dom.ast.IBinding;
+import org.eclipse.cdt.core.dom.ast.*;
 import org.eclipse.cdt.core.dom.ast.cpp.ICPPASTCompositeTypeSpecifier;
 import org.eclipse.cdt.core.dom.ast.cpp.ICPPASTParameterDeclaration;
-import org.eclipse.cdt.internal.core.dom.parser.cpp.CPPASTArrayDeclarator;
-import org.eclipse.cdt.internal.core.dom.parser.cpp.CPPASTCompositeTypeSpecifier;
-import org.eclipse.cdt.internal.core.dom.parser.cpp.CPPASTDeclarator;
-import org.eclipse.cdt.internal.core.dom.parser.cpp.CPPASTFieldDeclarator;
-import org.eclipse.cdt.internal.core.dom.parser.cpp.CPPASTFunctionDeclarator;
-import org.eclipse.cdt.internal.core.dom.parser.cpp.CPPASTSimpleDeclaration;
-import org.eclipse.cdt.internal.core.dom.parser.cpp.CPPASTVisibilityLabel;
+import org.eclipse.cdt.internal.core.dom.parser.cpp.*;
 
 class DeclaratorHandler extends Handler<Declaration, IASTNameOwner, CXXLanguageFrontend> {
 
@@ -176,12 +156,15 @@ class DeclaratorHandler extends Handler<Declaration, IASTNameOwner, CXXLanguageF
   }
 
   private ValueDeclaration handleFunctionDeclarator(CPPASTFunctionDeclarator ctx) {
-    // Attention! If this declarator has no name, this is not actually a new function but
-    // rather a function pointer
-    if (ctx.getName().toString().isEmpty()) {
+    // Attention! This might actually be a function pointer
+    if (ctx.getNestedDeclarator() != null
+        && ctx.getNestedDeclarator().getPointerOperators().length > 0) {
       return handleFunctionPointer(ctx);
     }
     String name = ctx.getName().toString();
+    if (name.isEmpty() && ctx.getNestedDeclarator() != null) {
+      name = ctx.getNestedDeclarator().getName().toString();
+    }
 
     /*
      * As always, there are some special cases to consider and one of those are C++ operators.
